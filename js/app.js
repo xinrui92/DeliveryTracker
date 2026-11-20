@@ -99,6 +99,11 @@
   const profileName = (id) => { const p = S.profiles.find((x) => x.id === id); return p ? p.full_name || p.email : ""; };
   const isOpen = (d) => !d.delivered_date && d.status !== "cancelled";
 
+  const SNAP_KEY = "dt-snapshot";
+  const saveSnap = () => { try { localStorage.setItem(SNAP_KEY, JSON.stringify({ uid: S.me.id, at: Date.now(), me: S.me, deliveries: S.deliveries, profiles: S.profiles, settings: S.settings, alerts: S.alerts, dismissed: [...S.dismissed] })); } catch (_) {} };
+  const readSnap = (uid) => { try { const j = JSON.parse(localStorage.getItem(SNAP_KEY) || "null"); return j && j.uid === uid ? j : null; } catch (_) { return null; } };
+  const clearSnap = () => { try { localStorage.removeItem(SNAP_KEY); } catch (_) {} };
+
   function toast(msg, kind = "") {
     const el = document.createElement("div");
     el.className = `toast ${kind}`;
@@ -211,6 +216,7 @@
 
   async function logout() {
     if (S.channel) { sb.removeChannel(S.channel); S.channel = null; }
+    clearSnap();
     await sb.auth.signOut();
     S.me = null; S.loaded = false;
     closeDrawer(); closeModal();
@@ -233,7 +239,8 @@
       const { data: { session } } = await sb.auth.getSession();
       S.session = session;
       if (!session) { showScreen("auth"); authForm("login"); return; }
-      const { data: me, error } = await sb.from("profiles").select("*").eq("id", session.user.id).single();
+      let { data: me, error } = await sb.from("profiles").select("*").eq("id", session.user.id).single();
+      if ((error || !me) && !navigator.onLine) { const snap = readSnap(session.user.id); if (snap) { me = snap.me; error = null; } }
       if (error || !me) { showScreen("auth"); authMsg("Could not load your profile. " + (error?.message || ""), true); return; }
       S.me = me;
       if (!me.is_active) { $("#pending-email").textContent = me.email; showScreen("pending"); return; }
@@ -263,13 +270,23 @@
       sb.from("alert_dismissals").select("alert_id").eq("user_id", S.me.id),
     ]);
     const err = [d, p, s, a, x].find((r) => r.error);
-    if (err) toast("Load error: " + err.error.message, "error");
+    if (err) {
+      const snap = readSnap(S.me.id);
+      if (snap) {
+        Object.assign(S, { deliveries: snap.deliveries, profiles: snap.profiles, settings: snap.settings, alerts: snap.alerts, dismissed: new Set(snap.dismissed) });
+        updateBadges();
+        toast(`Offline: showing data from ${fmtDateTime(snap.at)}`, "warn");
+        return;
+      }
+      toast("Load error: " + err.error.message, "error");
+    }
     S.deliveries = d.data || [];
     S.profiles = p.data || [];
     S.settings = s.data || { due_soon_days: 7, min_buffer_days: 3, default_transit_days: 7 };
     S.alerts = a.data || [];
     S.dismissed = new Set((x.data || []).map((r) => r.alert_id));
     updateBadges();
+    if (!err) saveSnap();
   }
 
   function updateBadges() {
@@ -303,6 +320,7 @@
   }
 
   // ---------------------------------------------------------------- router
+  window.addEventListener("online", () => { if (S.loaded) scheduleReload(); else start(); });
   window.addEventListener("hashchange", route);
   function route() {
     if (!S.loaded) return;

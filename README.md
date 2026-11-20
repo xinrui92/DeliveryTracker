@@ -47,3 +47,11 @@ vercel.json
 
 ## Run locally
 Any static server works, e.g. `npx serve .`, then open http://localhost:3000.
+
+## Installing as an app (PWA)
+The tracker is a Progressive Web App. In Chrome or Edge on a computer or Android phone, click **Install app** in the sidebar (or the install icon in the address bar). On iPhone or iPad, open it in Safari, tap **Share**, then **Add to Home Screen**.
+
+- `manifest.webmanifest`: app name, icons, colours and shortcuts (Deliveries, Alerts, Timeline)
+- `sw.js`: caches the app's files so it opens fast and offline. Supabase data is never cached by the service worker.
+- `js/pwa.js`: install button, "new version available" banner, offline banner
+- Offline, the app shows the last data it loaded (kept in the browser and cleared on sign-out). Saving needs a connection.
