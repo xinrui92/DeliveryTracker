@@ -91,6 +91,10 @@ input[type="checkbox"] { width: auto; min-height: 0; }
 
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; letter-spacing: -.01em; }
 .brand-lg { font-size: 18px; }
+.brand-logo { height: 28px; width: auto; border-radius: 6px; background: #fff; flex: none; box-shadow: 0 0 0 1px rgba(23,32,51,.12); }
+.brand-lg .brand-logo { height: 34px; }
+.sidebar .brand { font-size: 13.5px; white-space: nowrap; gap: 9px; }
+.sidebar .brand-logo { height: 22px; border-radius: 5px; }
 .brand-mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); position: relative; flex: none; }
 .brand-mark::after { content: ""; position: absolute; inset: 7px 6px 9px 6px; border-bottom: 3px solid var(--ink); border-right: 3px solid var(--ink); border-radius: 1px; }
 

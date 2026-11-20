@@ -2,7 +2,7 @@
    - App shell (HTML/CSS/JS/icons + Supabase library) is cached so the app opens instantly and offline.
    - Own files: network-first, so new deploys show up straight away; cache is the offline fallback.
    - Supabase API / auth / realtime traffic is never cached (always live data, respects security). */
-const VERSION = "dt-v1";
+const VERSION = "dt-v2";
 const SHELL = [
   "/",
   "/index.html",
@@ -15,6 +15,7 @@ const SHELL = [
   "/icons/icon-512.png",
   "/icons/apple-touch-icon.png",
   "/icons/favicon-32.png",
+  "/icons/logo.png",
 ];
 const CDN = [
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
